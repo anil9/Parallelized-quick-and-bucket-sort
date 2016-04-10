@@ -43,10 +43,10 @@ int main(int argc, char **argv)
     int start_index = p*subarray_size;
     int stop_index;
     if(p==P-1){
-        stop = ARRAY_SIZE;
+        stop_index = ARRAY_SIZE;
         //stop = p*subarray_size+subarray_size+rest;
     }else{
-        stop = p*subarray_size+subarray_size;
+        stop_index = p*subarray_size+subarray_size;
     }
     // small buckets will be communicated to their correct owner
     vector<vector<int> > small_buckets(P,vector<int>());
