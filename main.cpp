@@ -13,19 +13,23 @@ int main(int argc, char **argv)
 {
     unsigned int P;
     unsigned int p;
-    int a = 100;
-    int b = 300;
-    int num_numbers = 100;
+    int a = 0;
+    int b = 30000;
+    int num_numbers = 1000000;
     int * final_bucket = new int[num_numbers];
 
     int * numbers = new int[num_numbers];
     srand(time(NULL));
     for(int i=0; i<num_numbers; i++){
-        numbers[i] = rand() %(b-a+1)+a;
+        numbers[i] = rand() %(b-a)+a;
       //  printf("%d ", numbers[i]);
     }
 
     MPI::Init(argc, argv);
+
+    double start_time,end_time;
+    MPI::COMM_WORLD.Barrier();
+    start_time = MPI::Wtime();
     P = MPI::COMM_WORLD.Get_size();
     p = MPI::COMM_WORLD.Get_rank();
 
@@ -66,7 +70,7 @@ int main(int argc, char **argv)
     for(int i = start; i<stop; ++i){
         int bucket = (numbers[i]-a)/interval_size; 
     
-        printf("Number: %d Bucket: %d\n", numbers[i], bucket);
+        //printf("Number: %d Bucket: %d\n", numbers[i], bucket);
         if(bucket != p){
             small_buckets[bucket].push_back(numbers[i]);
         }else{
@@ -121,11 +125,13 @@ int main(int argc, char **argv)
     }
 
     MPI::COMM_WORLD.Gatherv(&large_bucket[0], large_bucket.size(), MPI::INT, &final_bucket[0], &size_list[0], &index[0], MPI::INT, 0);
-
+    MPI::COMM_WORLD.Barrier();
+    end_time = MPI::Wtime();
     if(p==0){
-        for(int i = 0; i<num_numbers; ++i){
-            printf("%d ", final_bucket[i]);
-        }
+    	printf("That took %f seconds\n",end_time-start_time);
+        //for(int i = 0; i<num_numbers; ++i){
+          //  printf("%d ", final_bucket[i]);
+        //}
     }
 
     MPI::COMM_WORLD.Barrier();
