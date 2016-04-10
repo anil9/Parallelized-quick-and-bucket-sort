@@ -1,3 +1,3 @@
 all: 
 	mpic++  main.cpp -lm
-	mpirun -np 19 ./a.out
+	mpirun -np 4 ./a.out

@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     int * numbers = new int[num_numbers];
     srand(time(NULL));
     for(int i=0; i<num_numbers; i++){
-        numbers[i] = rand() % b + a;
+        numbers[i] = rand() %(b-a+1)+a;
       //  printf("%d ", numbers[i]);
     }
 
