@@ -1,3 +1,7 @@
+merge:
+	mpic++ merge_sort.cpp -o merge.out -lm
+	mpirun -np 4 ./merge.out
+
 bucket: 
-	mpic++  bucket_sort.cpp -lm
-	mpirun -np 4 ./a.out
+	mpic++ bucket_sort.cpp -o bucket.out -lm
+	mpirun -np 4 ./bucket.out

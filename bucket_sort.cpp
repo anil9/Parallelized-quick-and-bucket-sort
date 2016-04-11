@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     #define LOWER_BOUND 0
     #define UPPER_BOUND 30000
     // declare size of array to sort
-    #define ARRAY_SIZE 1000000
+    #define ARRAY_SIZE 10000000
 
     int * sorted_array = new int[ARRAY_SIZE];
     int * unsorted_array = new int[ARRAY_SIZE];
