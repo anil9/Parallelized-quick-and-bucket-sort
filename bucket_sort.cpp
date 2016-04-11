@@ -16,12 +16,22 @@ int main(int argc, char **argv)
     // declare bounds
     #define LOWER_BOUND 0
     #define UPPER_BOUND 30000
+
+    if(argc < 2){
+        fprintf(stderr,"No size N given");
+        exit(EXIT_FAILURE);
+    }
     // declare size of array to sort
-    #define ARRAY_SIZE 10000000
+    int ARRAY_SIZE = atoi(argv[1]);
+    if(ARRAY_SIZE <= 0){
+        fprintf(stderr,"Array size cannot be negative");
+        exit(EXIT_FAILURE);   
+    }
 
     int * sorted_array = new int[ARRAY_SIZE];
     int * unsorted_array = new int[ARRAY_SIZE];
 
+    // data generation
     srand(time(NULL));
     for(int i=0; i<ARRAY_SIZE; i++){
         unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;

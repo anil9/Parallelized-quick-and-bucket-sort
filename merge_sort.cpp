@@ -11,36 +11,7 @@
 using namespace std;
 
 
-
-void merge (vector<int>& sub_array, int* received_array, int received_size){
-    
-    int c1, c2; 
-    c1=c2=0;
-    vector<int> resulting_array;
-
-    while(c1 < sub_array.size() && c2 < received_size){
-        if(sub_array[c1] <= received_array[c2]){
-            resulting_array.push_back(sub_array[c1]);
-            
-            c1++;
-        } else {
-            resulting_array.push_back(received_array[c2]);
-            
-            c2++;
-        }
-    }
-    while(c1 < sub_array.size()){
-        resulting_array.push_back(sub_array[c1]);
-        
-        c1++;
-    }
-
-    while(c2 < received_size){
-        resulting_array.push_back(received_array[c2]);
-        c2++;
-    }
-    sub_array = resulting_array;
-}
+void merge (vector<int>& sub_array, int* received_array, int received_size);
 
 int main(int argc, char **argv)
 {
@@ -49,12 +20,21 @@ int main(int argc, char **argv)
     // declare bounds
     #define LOWER_BOUND 0
     #define UPPER_BOUND 30000
+    
+    if(argc < 2){
+        fprintf(stderr,"No size N given");
+        exit(EXIT_FAILURE);
+    }
     // declare size of array to sort
-    #define ARRAY_SIZE 10000000
-
+    int ARRAY_SIZE = atoi(argv[1]);
+    if(ARRAY_SIZE <= 0){
+        fprintf(stderr,"Array size cannot be negative");
+        exit(EXIT_FAILURE);   
+    }
     
     int * unsorted_array = new int[ARRAY_SIZE];
 
+    // data generation
     srand(time(NULL));
     for(int i=0; i<ARRAY_SIZE; i++){
         unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;
@@ -133,6 +113,36 @@ int main(int argc, char **argv)
     MPI::Finalize();
 
 
+}
+
+void merge (vector<int>& sub_array, int* received_array, int received_size){
+    
+    int c1, c2; 
+    c1=c2=0;
+    vector<int> resulting_array;
+
+    while(c1 < sub_array.size() && c2 < received_size){
+        if(sub_array[c1] <= received_array[c2]){
+            resulting_array.push_back(sub_array[c1]);
+            
+            c1++;
+        } else {
+            resulting_array.push_back(received_array[c2]);
+            
+            c2++;
+        }
+    }
+    while(c1 < sub_array.size()){
+        resulting_array.push_back(sub_array[c1]);
+        
+        c1++;
+    }
+
+    while(c2 < received_size){
+        resulting_array.push_back(received_array[c2]);
+        c2++;
+    }
+    sub_array = resulting_array;
 }
 
 
