@@ -35,6 +35,7 @@ int main(int argc, char **argv)
 	    srand(time(NULL));
 	    for(int i=0; i<ARRAY_SIZE; i++){
 	        unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;
+	        
 	    }
 	}
 
@@ -133,20 +134,6 @@ int main(int argc, char **argv)
     sort(large_bucket.begin(),large_bucket.end());
 
     // all the processes send their bucket size to root node
-   /*
-   int * size_list = new int[P];
-    if(p != 0){
-        int send_size = large_bucket.size();
-		MPI::COMM_WORLD.Isend(&send_size, 1, MPI::INT, 0, 0);
-    }else{
-        // root node keeps track of the size of every bucket (required for MPI::Gatherv argument recvcounts).
-        size_list[0] = large_bucket.size();
-        for(int i = 1; i<P; i++){
-            MPI::COMM_WORLD.Recv(&size_list[i], 1, MPI::INT, i, 0);
-        }
-             
-    }
-    */
     int * size_list;
     int send_size = large_bucket.size();
     if(p == 0) {
