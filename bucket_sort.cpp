@@ -49,27 +49,56 @@ int main(int argc, char **argv)
     int interval_size = ceil((1.0*UPPER_BOUND)/P);
     
     // Portion of array to look at
-    int subarray_size = ARRAY_SIZE/P;
-    int start_index = p*subarray_size;
+    int portion = ceil((1.0*ARRAY_SIZE)/P);
+    int start_index = p*portion;
     int stop_index;
     if(p==P-1){
         stop_index = ARRAY_SIZE;
-        //stop = p*subarray_size+subarray_size+rest;
     }else{
-        stop_index = p*subarray_size+subarray_size;
+        stop_index = start_index + portion;
     }
+    int sub_array_size = stop_index - start_index;
+    
+    // distribute parts of array to all processes
+    int * send_counts = new int[P];
+    if(p == 0){
+	    for(int i = 0; i < P-1; ++i){
+	    	send_counts[i] = sub_array_size;
+	    }
+	    send_counts[P-1] = ARRAY_SIZE - (P-1)*portion;
+	}
+
+    int * displs = new int[P];
+    if(p == 0){
+	    for(int i = 0; i < P; ++i){
+	    	displs[i] = i*sub_array_size;
+	    }
+	}
+
+    // we use Scatterv to distribute parts of the array at the root node. Scatterv is used to send varying size of data from root node.
+    // we use send_counts to know the amount of elements we shall send to each processor.
+    // we use displs to specify the index of the first element of each processor in the send buffer.
+    int * tmp_sub_array = new int[sub_array_size];
+    MPI::COMM_WORLD.Scatterv(&unsorted_array[0], &send_counts[0], &displs[0], MPI::INT, &tmp_sub_array[0], sub_array_size, MPI::INT, 0);
+
+    vector<int> sub_array;	
+
+    for(int i = 0; i < sub_array_size; ++i){
+    	sub_array.push_back(tmp_sub_array[i]);
+    }
+
     // small buckets will be communicated to their correct owner
     vector<vector<int> > small_buckets(P,vector<int>());
     // this processor's main bucket
     vector<int> large_bucket;
     
     // place each number in the correct bucket
-    for(int i = start_index; i<stop_index; ++i){
-        int bucket = (unsorted_array[i]-LOWER_BOUND)/interval_size; 
+    for(int i = 0; i<sub_array_size; ++i){
+        int bucket = (sub_array[i]-LOWER_BOUND)/interval_size; 
         if(bucket != p){
-            small_buckets[bucket].push_back(unsorted_array[i]);
+            small_buckets[bucket].push_back(sub_array[i]);
         }else{
-            large_bucket.push_back(unsorted_array[i]);
+            large_bucket.push_back(sub_array[i]);
         }
     }
 
@@ -134,9 +163,12 @@ int main(int argc, char **argv)
     if(p==0){
     	printf("That took %f seconds\n",end_time-start_time);
         //for(int i = 0; i<ARRAY_SIZE; ++i){
-          //  printf("%d ", sorted_array[i]);
+        //    printf("%d\n", sorted_array[i]);
         //}
     }
+    delete[] send_counts;
+    delete[] displs;
+    delete[] tmp_sub_array;
     delete[] unsorted_array;
     delete[] index;
     delete[] sorted_array;
