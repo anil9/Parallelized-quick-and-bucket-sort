@@ -103,14 +103,12 @@ int main(int argc, char **argv)
         }
     }
 
-    // TODO: What is requests?
-    MPI::Request * requests = new MPI::Request[P];
     // distribute the size of the buckets and then the buckets to their correct owner. Non-blocking send.
     for(int i = 0; i < P; ++i){
         if(i != p){
           int send_size = small_buckets[i].size();
           MPI::COMM_WORLD.Isend(&send_size, 1, MPI::INT, i, 0);  
-          requests[i] = MPI::COMM_WORLD.Isend(&small_buckets[i][0], small_buckets[i].size(), MPI::INT, i, 1);
+          MPI::COMM_WORLD.Isend(&small_buckets[i][0], small_buckets[i].size(), MPI::INT, i, 1);
         }
     } 
 
@@ -136,7 +134,7 @@ int main(int argc, char **argv)
     int * size_list = new int[P];
     if(p != 0){
         int send_size = large_bucket.size();
-       MPI::Request request = MPI::COMM_WORLD.Isend(&send_size, 1, MPI::INT, 0, 0);
+		MPI::COMM_WORLD.Isend(&send_size, 1, MPI::INT, 0, 0);
     }else{
         // root node keeps track of the size of every bucket (required for MPI::Gatherv argument recvcounts).
         size_list[0] = large_bucket.size();
@@ -163,9 +161,9 @@ int main(int argc, char **argv)
     end_time = MPI::Wtime();
     if(p==0){
     	printf("That took %f seconds\n",end_time-start_time);
-        //for(int i = 0; i<ARRAY_SIZE; ++i){
-        //    printf("%d\n", unsorted_array[i]);
-        //}
+        for(int i = 0; i<ARRAY_SIZE; ++i){
+            printf("%d\n", unsorted_array[i]);
+        }
     }
     delete[] send_counts;
     delete[] displs;
@@ -173,7 +171,6 @@ int main(int argc, char **argv)
     delete[] unsorted_array;
     delete[] index;
     delete[] size_list;
-    delete[] requests;
 
     MPI::Finalize();
 
