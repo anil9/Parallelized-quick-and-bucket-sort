@@ -178,8 +178,9 @@ int main(int argc, char **argv)
     }
     
     delete[] tmp_sub_array;
-    delete[] unsorted_array;
+    
     if(p == 0){
+    	delete[] unsorted_array;
 	    delete[] send_counts;
 	    delete[] displs;
 	    delete[] index;
