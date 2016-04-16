@@ -61,16 +61,18 @@ int main(int argc, char **argv)
     int sub_array_size = stop_index - start_index;
     
     // distribute parts of array to all processes
-    int * send_counts = new int[P];
+    int * send_counts;
     if(p == 0){
+    	send_counts = new int[P];
 	    for(int i = 0; i < P-1; ++i){
 	    	send_counts[i] = sub_array_size;
 	    }
 	    send_counts[P-1] = ARRAY_SIZE - (P-1)*portion;
 	}
 
-    int * displs = new int[P];
+    int * displs;
     if(p == 0){
+    	displs = new int[P];
 	    for(int i = 0; i < P; ++i){
 	    	displs[i] = i*sub_array_size;
 	    }
@@ -131,7 +133,8 @@ int main(int argc, char **argv)
     sort(large_bucket.begin(),large_bucket.end());
 
     // all the processes send their bucket size to root node
-    int * size_list = new int[P];
+   /*
+   int * size_list = new int[P];
     if(p != 0){
         int send_size = large_bucket.size();
 		MPI::COMM_WORLD.Isend(&send_size, 1, MPI::INT, 0, 0);
@@ -143,10 +146,18 @@ int main(int argc, char **argv)
         }
              
     }
+    */
+    int * size_list;
+    int send_size = large_bucket.size();
+    if(p == 0) {
+    	size_list = new int[P];
+    }
+    MPI::COMM_WORLD.Gather(&send_size, 1, MPI::INT, &size_list[0], 1, MPI::INT, 0);
 
     // which index to put incoming data from MPI::Gatherv. (for argument displs)
-    int * index = new int[P];
+    int * index;
     if(p == 0){
+    	index = new int[P];
         index[0] = 0;
         for(int i = 1; i<P; ++i){
             index[i] = size_list[i-1] + index[i-1];
@@ -161,16 +172,19 @@ int main(int argc, char **argv)
     end_time = MPI::Wtime();
     if(p==0){
     	printf("That took %f seconds\n",end_time-start_time);
-        for(int i = 0; i<ARRAY_SIZE; ++i){
-            printf("%d\n", unsorted_array[i]);
-        }
+        //for(int i = 0; i<ARRAY_SIZE; ++i){
+        //    printf("%d\n", unsorted_array[i]);
+        //}
     }
-    delete[] send_counts;
-    delete[] displs;
+    
     delete[] tmp_sub_array;
     delete[] unsorted_array;
-    delete[] index;
-    delete[] size_list;
+    if(p == 0){
+	    delete[] send_counts;
+	    delete[] displs;
+	    delete[] index;
+	    delete[] size_list;
+	}
 
     MPI::Finalize();
 

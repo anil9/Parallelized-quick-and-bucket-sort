@@ -4,4 +4,4 @@ merge:
 
 bucket: 
 	mpic++ bucket_sort.cpp -o bucket.out -lm
-	mpirun -np 4 ./bucket.out 10
+	mpirun -np 4 ./bucket.out 1000000
