@@ -27,15 +27,16 @@ int main(int argc, char **argv)
         fprintf(stderr,"Array size cannot be negative");
         exit(EXIT_FAILURE);   
     }
+    int * unsorted_array;
 
-    int * sorted_array = new int[ARRAY_SIZE];
-    int * unsorted_array = new int[ARRAY_SIZE];
-
-    // data generation
-    srand(time(NULL));
-    for(int i=0; i<ARRAY_SIZE; i++){
-        unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;
-    }
+    if(p == 0){
+	    unsorted_array = new int[ARRAY_SIZE];
+	    // data generation
+	    srand(time(NULL));
+	    for(int i=0; i<ARRAY_SIZE; i++){
+	        unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;
+	    }
+	}
 
     MPI::Init(argc, argv);
     // time the wall clock time of the execution
@@ -127,7 +128,7 @@ int main(int argc, char **argv)
             delete[] temp;
         }
     } 
-    delete[] requests;
+    
     // sort the bucket using sort included from algorithms library
     sort(large_bucket.begin(),large_bucket.end());
 
@@ -156,14 +157,14 @@ int main(int argc, char **argv)
     // we use Gatherv to collect all the buckets at the root node. Gatherv is used to collect varying size of data from multiple sources.
     // we use size_list to know the size of every bucket we shall receive.
     // we use index to specify at which index the receiving buckets first element shall be positioned.
-    MPI::COMM_WORLD.Gatherv(&large_bucket[0], large_bucket.size(), MPI::INT, &sorted_array[0], &size_list[0], &index[0], MPI::INT, 0);
+    MPI::COMM_WORLD.Gatherv(&large_bucket[0], large_bucket.size(), MPI::INT, &unsorted_array[0], &size_list[0], &index[0], MPI::INT, 0);
     // end of execution. We stop and print the timer here. (Use Barrier so all processes are finished at this point.)
     MPI::COMM_WORLD.Barrier();
     end_time = MPI::Wtime();
     if(p==0){
     	printf("That took %f seconds\n",end_time-start_time);
         //for(int i = 0; i<ARRAY_SIZE; ++i){
-        //    printf("%d\n", sorted_array[i]);
+        //    printf("%d\n", unsorted_array[i]);
         //}
     }
     delete[] send_counts;
@@ -171,8 +172,8 @@ int main(int argc, char **argv)
     delete[] tmp_sub_array;
     delete[] unsorted_array;
     delete[] index;
-    delete[] sorted_array;
     delete[] size_list;
+    delete[] requests;
 
     MPI::Finalize();
 
