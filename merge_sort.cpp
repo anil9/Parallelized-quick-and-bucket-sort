@@ -68,16 +68,18 @@ int main(int argc, char **argv)
     int	sub_array_size = stop_index - start_index;
     
     // distribute parts of array to all processes
-    int * send_counts = new int[P];
+    int * send_counts;
     if(p == 0){
+    	send_counts = new int[P];
 	    for(int i = 0; i < P-1; ++i){
 	    	send_counts[i] = sub_array_size;
 	    }
 	    send_counts[P-1] = ARRAY_SIZE - (P-1)*portion;
 	}
 
-    int * displs = new int[P];
+    int * displs;
     if(p == 0){
+    	displs = new int[P];
 	    for(int i = 0; i < P; ++i){
 	    	displs[i] = i*sub_array_size;
 	    }
@@ -138,10 +140,13 @@ int main(int argc, char **argv)
         
         
     }
-    delete[] send_counts;
-    delete[] displs;
+    
     delete[] tmp_sub_array;
-    if(p == 0) delete[] unsorted_array;
+    if(p == 0) {
+    	delete[] send_counts;
+    	delete[] displs;
+    	delete[] unsorted_array;	
+    } 
     MPI::Finalize();
 
 
