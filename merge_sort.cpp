@@ -49,24 +49,48 @@ int main(int argc, char **argv)
     P = MPI::COMM_WORLD.Get_size();
     p = MPI::COMM_WORLD.Get_rank();
 
-    int sub_array_size = ARRAY_SIZE/P;
+    int portion = ceil((1.0*ARRAY_SIZE)/P);
     
-    vector<int> sub_array;
-    
-    int start_index = p*sub_array_size;
+    int start_index = p*portion;
     int stop_index;
     if(p==P-1){
         stop_index = ARRAY_SIZE;
-        //stop = p*subarray_size+subarray_size+rest;
     }else{
-        stop_index = start_index+sub_array_size;
+        stop_index = start_index+portion;
     }
+
+    int	sub_array_size = stop_index - start_index;
+    // distribute parts of array to all processes
+    int * send_counts = new int[P];
+    if(p == 0){
+	    for(int i = 0; i < P-1; ++i){
+	    	send_counts[i] = sub_array_size;
+	    }
+	    send_counts[P-1] = ARRAY_SIZE - (P-1)*portion;
+	}
+
+    int * displs = new int[P];
+    if(p == 0){
+	    for(int i = 0; i < P; ++i){
+	    	displs[i] = i*sub_array_size;
+	    }
+	}
+
+
+    // we use Scatterv to distribute parts of the array at the root node. Scatterv is used to send varying size of data from root node.
+    // we use send_counts to know the amount of elements we shall send to each processor.
+    // we use index to specify at which index the receiving buckets first element shall be positioned.
+    int * tmp_sub_array = new int[sub_array_size];
+    MPI::COMM_WORLD.Scatterv(&unsorted_array[0], &send_counts[0], &displs[0], MPI::INT, &tmp_sub_array[0], sub_array_size, MPI::INT, 0);
+    
+
     //printf("start: %d, stop: %d", start_index, stop_index);
-    for(int i = start_index; i < stop_index; ++i){
-        sub_array.push_back(unsorted_array[i]);
+    vector<int> sub_array;	// c++ 2011
+
+    for(int i = 0; i < sub_array_size; ++i){
+    	sub_array.push_back(tmp_sub_array[i]);
     }
-
-
+ 
     sort(sub_array.begin(), sub_array.end());
     
 
@@ -105,10 +129,14 @@ int main(int argc, char **argv)
             printf("%d\n", sub_array[i]);
         }
         */
+        
         printf("That took %f seconds\n",end_time-start_time);
         
         
     }
+    delete[] send_counts;
+    delete[] displs;
+    delete[] tmp_sub_array;
     delete[] unsorted_array;
     MPI::Finalize();
 
