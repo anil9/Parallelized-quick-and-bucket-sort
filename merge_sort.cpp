@@ -32,13 +32,9 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);   
     }
     
-    int * unsorted_array = new int[ARRAY_SIZE];
+    int * unsorted_array;
 
-    // data generation
-    srand(time(NULL));
-    for(int i=0; i<ARRAY_SIZE; i++){
-        unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;
-    }
+    
 
     MPI::Init(argc, argv);
     // time the wall clock time of the execution
@@ -48,6 +44,16 @@ int main(int argc, char **argv)
 
     P = MPI::COMM_WORLD.Get_size();
     p = MPI::COMM_WORLD.Get_rank();
+
+    if(p == 0){
+	    unsorted_array = new int[ARRAY_SIZE];
+
+	    // data generation
+	    srand(time(NULL));
+	    for(int i=0; i<ARRAY_SIZE; i++){
+	        unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;
+	    }
+	}
 
     int portion = ceil((1.0*ARRAY_SIZE)/P);
     
@@ -124,11 +130,10 @@ int main(int argc, char **argv)
     end_time = MPI::Wtime();
 
     if(p==0){
-        /*for(int i = 0; i<sub_array.size(); ++i){
-            printf("%d\n", sub_array[i]);
-        }
-        */
-        
+        //for(int i = 0; i<sub_array.size(); ++i){
+        //    printf("%d\n", sub_array[i]);
+        //}
+                
         printf("That took %f seconds\n",end_time-start_time);
         
         
@@ -136,7 +141,7 @@ int main(int argc, char **argv)
     delete[] send_counts;
     delete[] displs;
     delete[] tmp_sub_array;
-    delete[] unsorted_array;
+    if(p == 0) delete[] unsorted_array;
     MPI::Finalize();
 
 
