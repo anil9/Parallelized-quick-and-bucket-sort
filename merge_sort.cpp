@@ -92,7 +92,8 @@ int main(int argc, char **argv)
     int * tmp_sub_array = new int[sub_array_size];
     MPI::COMM_WORLD.Scatterv(&unsorted_array[0], &send_counts[0], &displs[0], MPI::INT, &tmp_sub_array[0], sub_array_size, MPI::INT, 0);
    
-    vector<int> sub_array;	
+    vector<int> sub_array;
+    sub_array.reserve(sub_array_size);	
 
     for(int i = 0; i < sub_array_size; ++i){
     	sub_array.push_back(tmp_sub_array[i]);
@@ -132,9 +133,10 @@ int main(int argc, char **argv)
     end_time = MPI::Wtime();
 
     if(p==0){
-        //for(int i = 0; i<sub_array.size(); ++i){
-        //    printf("%d\n", sub_array[i]);
-        //}
+        /*for(int i = 0; i<sub_array.size(); ++i){
+            printf("%d\n", sub_array[i]);
+        }
+        */
                 
         printf("That took %f seconds\n",end_time-start_time);
         
@@ -157,6 +159,7 @@ void merge (vector<int>& sub_array, int* received_array, int received_size){
     int c1, c2; 
     c1=c2=0;
     vector<int> resulting_array;
+    resulting_array.reserve(sub_array.size()+received_size);
 
     while(c1 < sub_array.size() && c2 < received_size){
         if(sub_array[c1] <= received_array[c2]){

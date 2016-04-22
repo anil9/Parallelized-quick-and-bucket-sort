@@ -85,7 +85,8 @@ int main(int argc, char **argv)
     int * tmp_sub_array = new int[sub_array_size];
     MPI::COMM_WORLD.Scatterv(&unsorted_array[0], &send_counts[0], &displs[0], MPI::INT, &tmp_sub_array[0], sub_array_size, MPI::INT, 0);
 
-    vector<int> sub_array;	
+    vector<int> sub_array;
+    sub_array.reserve(sub_array_size);	
 
     for(int i = 0; i < sub_array_size; ++i){
     	sub_array.push_back(tmp_sub_array[i]);
@@ -93,8 +94,13 @@ int main(int argc, char **argv)
 
     // small buckets will be communicated to their correct owner
     vector<vector<int> > small_buckets(P,vector<int>());
+    // reserve max size for each vector
+    for(int i = 0; i < P; ++i){
+    	small_buckets[i].reserve(sub_array_size);
+    }
     // this processor's main bucket
     vector<int> large_bucket;
+    large_bucket.reserve(sub_array_size);
     
     // place each number in the correct bucket
     for(int i = 0; i<sub_array_size; ++i){
@@ -159,9 +165,10 @@ int main(int argc, char **argv)
     end_time = MPI::Wtime();
     if(p==0){
     	printf("That took %f seconds\n",end_time-start_time);
-        //for(int i = 0; i<ARRAY_SIZE; ++i){
-        //    printf("%d\n", unsorted_array[i]);
-        //}
+        /*for(int i = 0; i<ARRAY_SIZE; ++i){
+            printf("%d\n", unsorted_array[i]);
+        }
+        */
     }
     
     delete[] tmp_sub_array;
