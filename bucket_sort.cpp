@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     unsigned int p;
     // declare bounds
     #define LOWER_BOUND 0
-    #define UPPER_BOUND 30000
+    #define UPPER_BOUND 10000000
 
     if(argc < 2){
         fprintf(stderr,"No size N given");
@@ -32,7 +32,8 @@ int main(int argc, char **argv)
     if(p == 0){
 	    unsorted_array = new int[ARRAY_SIZE];
 	    // data generation
-	    srand(time(NULL));
+	    int seed = 42;
+	    srand(seed);
 	    for(int i=0; i<ARRAY_SIZE; i++){
 	        unsorted_array[i] = rand() %(UPPER_BOUND-LOWER_BOUND)+LOWER_BOUND;
 	        
