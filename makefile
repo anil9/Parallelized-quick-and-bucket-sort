@@ -1,6 +1,6 @@
 merge:
 	mpic++ merge_sort.cpp -o merge.out -lm
-	mpirun -np 4 ./merge.out 1000000
+	mpirun -np 4 ./merge.out 100000000
 
 bucket: 
 	mpic++ bucket_sort.cpp -o bucket.out -lm

@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 {
     unsigned int P;
     unsigned int p;
+    int * unsorted_array;
     // declare bounds
     #define LOWER_BOUND 0
     #define UPPER_BOUND 10000000
@@ -32,10 +33,6 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);   
     }
     
-    int * unsorted_array;
-
-    
-
     MPI::Init(argc, argv);
     // time the wall clock time of the execution
     double start_time,end_time;
@@ -45,6 +42,7 @@ int main(int argc, char **argv)
     P = MPI::COMM_WORLD.Get_size();
     p = MPI::COMM_WORLD.Get_rank();
 
+    // Create array of unsorted elements in root 
     if(p == 0){
 	    unsorted_array = new int[ARRAY_SIZE];
 	    int seed = 42;
@@ -55,6 +53,7 @@ int main(int argc, char **argv)
 	    }
 	}
 
+	// Portion of array for eacy processor
     int portion = ceil((1.0*ARRAY_SIZE)/P);
     
     int start_index = p*portion;
@@ -67,7 +66,7 @@ int main(int argc, char **argv)
 
     int	sub_array_size = stop_index - start_index;
     
-    // distribute parts of array to all processes
+    // Setup for distribution of subarrays to all processors
     int * send_counts;
     if(p == 0){
     	send_counts = new int[P];
@@ -98,13 +97,14 @@ int main(int argc, char **argv)
     for(int i = 0; i < sub_array_size; ++i){
     	sub_array.push_back(tmp_sub_array[i]);
     }
- 
+
+ 	// Local sort
     sort(sub_array.begin(), sub_array.end());
     
-
+    // Sending data back and merging 
     int step = 1;
     while(step < P){
-
+    	// Processor is in use next step (parent)
         if(p % (2*step) == 0){
             int right_child = p+step;
             if(right_child < P){
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
             }
         } else {
 
-            int parent = p-step;    // maybe check for negative parent
+            int parent = p-step;
             int send_size = sub_array.size();
             MPI::COMM_WORLD.Isend(&send_size, 1, MPI::INT, parent, 0);
             MPI::COMM_WORLD.Isend(&sub_array[0], send_size, MPI::INT, parent, 1);
@@ -132,15 +132,8 @@ int main(int argc, char **argv)
     MPI::COMM_WORLD.Barrier();
     end_time = MPI::Wtime();
 
-    if(p==0){
-        /*for(int i = 0; i<sub_array.size(); ++i){
-            printf("%d\n", sub_array[i]);
-        }
-        */
-                
-        printf("That took %f seconds\n",end_time-start_time);
-        
-        
+    if(p==0){   
+        printf("That took %f seconds\n",end_time-start_time);       
     }
     
     delete[] tmp_sub_array;
